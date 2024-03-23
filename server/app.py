@@ -62,7 +62,9 @@ def get_users():
             "id": user.id
             # Add more fields as needed
         }
-    user_list.append(user_data)
+        user_list.append(user_data)
+        
+        
     print(user_list)
     return jsonify(users=user_list)
 # Run the app 
