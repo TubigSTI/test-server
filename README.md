@@ -1,5 +1,5 @@
 # Decision Support System Thesis - Server Side 
-
+    - A Thesis project by Computer Science students from STI Bacoor
 ## Things to Implement
 
 - [ ] - Login Authentication System (In Progress)
