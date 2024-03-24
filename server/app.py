@@ -1,6 +1,7 @@
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort, jsonify, session
 from models import db,User
 from config import ApplicationConfig
+from flask_cors import CORS,cross_origin
 from flask_bcrypt import Bcrypt
 # app = flask(name) - means its just referecing the app.py file 
 app = Flask(__name__)
@@ -9,17 +10,26 @@ app.config.from_object(ApplicationConfig)
 bcrypt = Bcrypt(app)
 # Initialize the application to the database 
 db.init_app(app)    
-
+# Allowing Cross Origin 
+CORS(app, supports_credentials=True)
 with app.app_context(): 
     db.create_all()
     
+# Managing Session cookie
+@app.route("/@me")
+def get_current_user(): 
+    user_id = session.get("user_id")
+    
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+    
+    user = user.query.filter_by(id=user_id)
 @app.route("/register", methods=["POST"])
 def register_user(): 
     email = request.json["email"]
     password = request.json["password"]
     # Check if user exists
     user_exists = User.query.filter_by(email=email).first() is not None
-    some_user = User.query.filter_by(email=email)
     if user_exists: 
         abort(409)    
     hashed_password = bcrypt.generate_password_hash(password)
@@ -38,11 +48,14 @@ def login_user():
     password = request.json["password"]
     
     user = User.query.filter_by(email=email).first()
+    # checks if the users DOESNT exist, returns 401 error 
     if user is None: 
         return jsonify({"error" : "User Doesnt Exist"},401)
-    
+    # If the user exist but the password doesnt match, return 401 error 
     if not bcrypt.check_password_hash(user.password , password): 
         return jsonify({"error" : "Wrong Password"},401)
+    # Creating a session cookie everytime user logsin 
+    session["user_id"] = user.id
     
     return jsonify({
         "id": user.id,
@@ -63,8 +76,6 @@ def get_users():
             # Add more fields as needed
         }
         user_list.append(user_data)
-        
-        
     print(user_list)
     return jsonify(users=user_list)
 # Run the app 
