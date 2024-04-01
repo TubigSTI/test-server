@@ -9,10 +9,10 @@ app = Flask(__name__)
 app.config.from_object(ApplicationConfig)
 # Intializing the enecryption for the password
 bcrypt = Bcrypt(app)
-# Initialize the application to the database 
-db.init_app(app)    
 # Allowing Cross Origin 
 CORS(app, supports_credentials=True)
+# Initialize the application to the database 
+db.init_app(app)    
 # Intializing Server Session in App 
 server_sesion = Session(app)
 
@@ -20,6 +20,7 @@ with app.app_context():
     db.create_all()
     
 # Managing Session cookie
+
 @app.route("/@me")
 def get_current_user(): 
     user_id = session.get("user_id")
@@ -33,7 +34,7 @@ def get_current_user():
         "id": user.id,
         "email": user.email
     })
-    
+
 @app.route("/register", methods=["POST"])
 def register_user(): 
     email = request.json["email"]
@@ -51,7 +52,7 @@ def register_user():
         "id": new_user.id,
         "email": new_user.email
     })
-    
+
 @app.route("/login" , methods=["POST"])
 def login_user(): 
     email = request.json["email"]
@@ -71,7 +72,7 @@ def login_user():
         "id": user.id,
         "email": user.email
     })
-    
+
 @app.route("/users", methods=["GET"])
 def get_users(): 
       # Get all the queries 
