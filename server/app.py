@@ -1,6 +1,7 @@
 from flask import Flask, request, abort, jsonify, session
 from models import db,User
 from config import ApplicationConfig
+from flask_session import Session
 from flask_cors import CORS,cross_origin
 from flask_bcrypt import Bcrypt
 # app = flask(name) - means its just referecing the app.py file 
@@ -12,6 +13,9 @@ bcrypt = Bcrypt(app)
 db.init_app(app)    
 # Allowing Cross Origin 
 CORS(app, supports_credentials=True)
+# Intializing Server Session in App 
+server_sesion = Session(app)
+
 with app.app_context(): 
     db.create_all()
     
@@ -23,7 +27,13 @@ def get_current_user():
     if not user_id:
         return jsonify({"error": "unauthorized"}), 401
     
-    user = user.query.filter_by(id=user_id)
+    user = User.query.filter_by(id=user_id).first()
+        
+    return jsonify({
+        "id": user.id,
+        "email": user.email
+    })
+    
 @app.route("/register", methods=["POST"])
 def register_user(): 
     email = request.json["email"]
@@ -69,15 +79,30 @@ def get_users():
 
     # Put in a data structure dictionary
     user_list = []
+    # Loop through the queries and get user and id only
     for user in users:
+        # Create object for the user and id details 
         user_data = {
             "user": user.email,
             "id": user.id
             # Add more fields as needed
         }
+        # push or append the user item to the empty array 
         user_list.append(user_data)
+    # print all the user
     print(user_list)
     return jsonify(users=user_list)
+
+@app.route ("/delete", methods=["DELETE"])
+def delete_users(): 
+    # Get all the user queries
+    users = User.query.all()
+    # Delete all the users 
+    for user in users: 
+          db.session.delete(user)
+    # Commit Session 
+    db.session.commit()
+
 # Run the app 
 # this name == main is used to make sure the server only runs if the script is exceuted directyle from 
 # a python interpreter and not used in an imported module 
